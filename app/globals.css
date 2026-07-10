@@ -9,10 +9,9 @@ button { font: inherit; }
 .slideshow { position: relative; width: 100%; height: 100vh; height: 100dvh; overflow: hidden; background: #050505; cursor: default; touch-action: pan-y; -webkit-tap-highlight-color: transparent; }
 .media-layer { position: absolute; inset: 0; display: grid; place-items: center; overflow: hidden; opacity: 0; }
 .media-layer.visible { opacity: 1; }
-.media-layer.entering { z-index: 2; }
-.media-layer.leaving { z-index: 1; }
-.media-layer.entering-forward, .media-layer.entering-reverse { animation: fade-in .35s .35s cubic-bezier(.22,.7,.28,1) both; }
-.media-layer.leaving-forward, .media-layer.leaving-reverse { animation: fade-out .35s ease-in both; }
+.media-layer.entering { z-index: 2; opacity: 1; }
+.media-layer.leaving { z-index: 1; opacity: 1; }
+.media-layer.entering :is(.image-backdrop, .video-backdrop) { animation: fade-in .7s ease-in-out both; }
 .media-layer.entering-forward :is(.image-main, .video-main) { animation: move-in-forward .35s .35s cubic-bezier(.22,.7,.28,1) both; }
 .media-layer.leaving-forward :is(.image-main, .video-main) { animation: move-out-forward .35s ease-in both; }
 .media-layer.entering-reverse :is(.image-main, .video-main) { animation: move-in-reverse .35s .35s cubic-bezier(.22,.7,.28,1) both; }
@@ -56,11 +55,10 @@ h1 { margin: 0; font-family: var(--font-cormorant), serif; font-size: clamp(64px
 .controls .controls-toggle { display: grid; flex: 0 0 42px; place-items: center; width: 42px; min-width: 42px; padding: 0; border: 1px solid transparent; background: transparent; transition: color .25s, background .25s, transform .38s cubic-bezier(.22,1,.36,1); }
 .controls.expanded .controls-toggle { color: #171511; background: #eee5d1; transform: rotate(45deg); }
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-@keyframes fade-out { from { opacity: 1; } to { opacity: 0; } }
-@keyframes move-in-forward { from { transform: translateX(7vw); } to { transform: translateX(0); } }
-@keyframes move-out-forward { from { transform: translateX(0); } to { transform: translateX(-7vw); } }
-@keyframes move-in-reverse { from { transform: translateX(-7vw); } to { transform: translateX(0); } }
-@keyframes move-out-reverse { from { transform: translateX(0); } to { transform: translateX(7vw); } }
+@keyframes move-in-forward { from { opacity: 0; transform: translateX(7vw); } to { opacity: 1; transform: translateX(0); } }
+@keyframes move-out-forward { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(-7vw); } }
+@keyframes move-in-reverse { from { opacity: 0; transform: translateX(-7vw); } to { opacity: 1; transform: translateX(0); } }
+@keyframes move-out-reverse { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(7vw); } }
 @media (hover: none), (pointer: coarse) {
   .controls { right: 50%; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); transform: translateX(50%); background: rgba(10,10,10,.84); border-color: rgba(255,255,255,.25); box-shadow: 0 16px 48px rgba(0,0,0,.42); }
   .control-actions { max-width: calc(100vw - 32px); opacity: 1; visibility: visible; transform: none; transition: none; }
@@ -89,4 +87,4 @@ h1 { margin: 0; font-family: var(--font-cormorant), serif; font-size: clamp(64px
   .filename-text { margin-right: 10px; margin-left: 0; }
   .copy-status { margin-right: 0; margin-left: 10px; }
 }
-@media (prefers-reduced-motion: reduce) { .media-layer.entering, .media-layer.leaving { animation-duration: .15s; animation-delay: 0s; } .media-layer :is(.image-main, .video-main) { animation: none; } .control-actions, .controls .controls-toggle { transition-duration: .01ms; } }
+@media (prefers-reduced-motion: reduce) { .media-layer.entering :is(.image-backdrop, .video-backdrop) { animation-duration: .15s; } .media-layer :is(.image-main, .video-main) { animation: none; } .control-actions, .controls .controls-toggle { transition-duration: .01ms; } }
