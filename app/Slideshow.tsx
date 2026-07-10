@@ -15,12 +15,15 @@ export function Slideshow() {
   const [supportsHover, setSupportsHover] = useState(true);
   const [muted, setMuted] = useState(false);
   const [filenameCopied, setFilenameCopied] = useState(false);
+  const [filenameExpanded, setFilenameExpanded] = useState(false);
   const rootRef = useRef<HTMLElement>(null);
   const current = items[index] as MediaItem;
 
   const move = useCallback((direction: number) => {
     setPrevious(index);
     setIndex((index + direction + items.length) % items.length);
+    setFilenameExpanded(false);
+    setFilenameCopied(false);
   }, [index]);
 
   useEffect(() => {
@@ -57,9 +60,17 @@ export function Slideshow() {
   };
 
   const copyFilename = async () => {
+    if (!supportsHover && !filenameExpanded) {
+      setFilenameExpanded(true);
+      return;
+    }
+
     await navigator.clipboard.writeText(current.originalName);
     setFilenameCopied(true);
-    window.setTimeout(() => setFilenameCopied(false), 1600);
+    window.setTimeout(() => {
+      setFilenameCopied(false);
+      setFilenameExpanded(false);
+    }, 800);
   };
 
   return (
@@ -68,7 +79,14 @@ export function Slideshow() {
       <MediaLayer key={`current-${index}`} item={current} className={started ? "entering" : "visible"} playing={started && playing} muted={muted} onEnded={() => move(1)} />
 
       {started && (
-        <button className="filename-label" type="button" onClick={copyFilename} title="Copy filename" aria-label={`Copy filename ${current.originalName}`}>
+        <button
+          className={`filename-label ${filenameExpanded ? "expanded" : ""}`}
+          type="button"
+          onClick={copyFilename}
+          title="Copy filename"
+          aria-expanded={!supportsHover ? filenameExpanded : undefined}
+          aria-label={!supportsHover && !filenameExpanded ? "Show filename" : `Copy filename ${current.originalName}`}
+        >
           <span className="filename-counter">{index + 1} / {items.length}</span>
           <span className="filename-details">
             <span className="filename-text">{current.originalName}</span>
