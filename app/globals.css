@@ -73,6 +73,7 @@ h1 { margin: 0; font-family: var(--font-cormorant), serif; font-size: clamp(64px
   .filename-label { top: calc(10px + env(safe-area-inset-top, 0px)); right: calc(10px + env(safe-area-inset-right, 0px)); bottom: auto; left: auto; min-width: 54px; max-width: calc(100vw - 20px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)); font-size: 11px; }
   .filename-label { display: flex; flex-direction: row-reverse; }
   .filename-counter { grid-area: auto; flex: 0 0 auto; opacity: 1; transform: none; }
+  .filename-label:hover .filename-counter, .filename-label:focus-visible .filename-counter { opacity: 1; transform: none; }
   .filename-details { display: flex; grid-area: auto; max-width: 0; opacity: 0; visibility: hidden; transform: translateX(8px); }
   .filename-label.expanded .filename-details { max-width: calc(100vw - 100px); opacity: 1; visibility: visible; transform: none; }
   .filename-text { margin-right: 10px; margin-left: 0; }

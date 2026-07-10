@@ -60,7 +60,9 @@ export function Slideshow() {
   };
 
   const copyFilename = async () => {
-    if (!supportsHover && !filenameExpanded) {
+    const usesTapInteraction = window.matchMedia("(hover: none), (pointer: coarse), (max-width: 640px)").matches;
+
+    if (usesTapInteraction && !filenameExpanded) {
       setFilenameExpanded(true);
       return;
     }
