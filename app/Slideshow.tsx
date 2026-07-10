@@ -22,6 +22,7 @@ export function Slideshow() {
   const [filenameExpanded, setFilenameExpanded] = useState(false);
   const rootRef = useRef<HTMLElement>(null);
   const swipeStartRef = useRef<{ pointerId: number; x: number; y: number } | null>(null);
+  const suppressTapRef = useRef(false);
   const current = items[index] as MediaItem;
 
   const move = useCallback((direction: number) => {
@@ -44,9 +45,25 @@ export function Slideshow() {
 
     const deltaX = event.clientX - start.x;
     const deltaY = event.clientY - start.y;
-    if (Math.abs(deltaX) < SWIPE_THRESHOLD || Math.abs(deltaX) <= Math.abs(deltaY)) return;
+    if (Math.abs(deltaX) >= SWIPE_THRESHOLD && Math.abs(deltaX) > Math.abs(deltaY)) {
+      suppressTapRef.current = true;
+      window.setTimeout(() => { suppressTapRef.current = false; }, 500);
+      move(deltaX < 0 ? 1 : -1);
+      return;
+    }
+  };
 
-    move(deltaX < 0 ? 1 : -1);
+  const handleTap = (event: React.MouseEvent<HTMLElement>) => {
+    if (!started) return;
+    if (suppressTapRef.current) {
+      suppressTapRef.current = false;
+      return;
+    }
+    const target = event.target as HTMLElement;
+    if (target.closest("button, nav, a, input, select, textarea")) return;
+    const bounds = rootRef.current?.getBoundingClientRect();
+    if (!bounds) return;
+    move(event.clientX >= bounds.left + bounds.width / 2 ? 1 : -1);
   };
 
   useEffect(() => {
@@ -105,6 +122,7 @@ export function Slideshow() {
       onPointerDown={beginSwipe}
       onPointerUp={finishSwipe}
       onPointerCancel={() => { swipeStartRef.current = null; }}
+      onClick={handleTap}
     >
       {previous !== null && <MediaLayer key={`previous-${previous}`} item={items[previous] as MediaItem} className={`leaving leaving-${direction}`} muted />}
       <MediaLayer key={`current-${index}`} item={current} className={started ? `entering entering-${direction}` : "visible"} playing={started && playing} muted={muted} onEnded={() => move(1)} />
