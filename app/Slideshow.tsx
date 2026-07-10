@@ -21,8 +21,7 @@ export function Slideshow() {
   const [filenameCopied, setFilenameCopied] = useState(false);
   const [filenameExpanded, setFilenameExpanded] = useState(false);
   const rootRef = useRef<HTMLElement>(null);
-  const swipeStartRef = useRef<{ pointerId: number; x: number; y: number } | null>(null);
-  const suppressTapRef = useRef(false);
+  const touchStartRef = useRef<{ x: number; y: number; interactive: boolean } | null>(null);
   const current = items[index] as MediaItem;
 
   const move = useCallback((direction: number) => {
@@ -33,37 +32,34 @@ export function Slideshow() {
     setFilenameCopied(false);
   }, [index]);
 
-  const beginSwipe = (event: React.PointerEvent<HTMLElement>) => {
-    if (!started || !event.isPrimary || event.pointerType === "mouse") return;
-    swipeStartRef.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
+  const beginTouch = (event: React.TouchEvent<HTMLElement>) => {
+    if (!started || event.touches.length !== 1) return;
+    const touch = event.touches[0];
+    const target = event.target as HTMLElement;
+    touchStartRef.current = {
+      x: touch.clientX,
+      y: touch.clientY,
+      interactive: Boolean(target.closest("button, nav, a, input, select, textarea")),
+    };
   };
 
-  const finishSwipe = (event: React.PointerEvent<HTMLElement>) => {
-    const start = swipeStartRef.current;
-    swipeStartRef.current = null;
-    if (!start || start.pointerId !== event.pointerId) return;
+  const finishTouch = (event: React.TouchEvent<HTMLElement>) => {
+    const start = touchStartRef.current;
+    touchStartRef.current = null;
+    if (!start || event.changedTouches.length !== 1) return;
 
-    const deltaX = event.clientX - start.x;
-    const deltaY = event.clientY - start.y;
+    const touch = event.changedTouches[0];
+    const deltaX = touch.clientX - start.x;
+    const deltaY = touch.clientY - start.y;
     if (Math.abs(deltaX) >= SWIPE_THRESHOLD && Math.abs(deltaX) > Math.abs(deltaY)) {
-      suppressTapRef.current = true;
-      window.setTimeout(() => { suppressTapRef.current = false; }, 500);
       move(deltaX < 0 ? 1 : -1);
       return;
     }
-  };
 
-  const handleTap = (event: React.MouseEvent<HTMLElement>) => {
-    if (!started) return;
-    if (suppressTapRef.current) {
-      suppressTapRef.current = false;
-      return;
-    }
-    const target = event.target as HTMLElement;
-    if (target.closest("button, nav, a, input, select, textarea")) return;
+    if (start.interactive || Math.hypot(deltaX, deltaY) > 12) return;
     const bounds = rootRef.current?.getBoundingClientRect();
     if (!bounds) return;
-    move(event.clientX >= bounds.left + bounds.width / 2 ? 1 : -1);
+    move(touch.clientX >= bounds.left + bounds.width / 2 ? 1 : -1);
   };
 
   useEffect(() => {
@@ -119,10 +115,9 @@ export function Slideshow() {
     <main
       ref={rootRef}
       className={`slideshow navigation-${direction}`}
-      onPointerDown={beginSwipe}
-      onPointerUp={finishSwipe}
-      onPointerCancel={() => { swipeStartRef.current = null; }}
-      onClick={handleTap}
+      onTouchStart={beginTouch}
+      onTouchEnd={finishTouch}
+      onTouchCancel={() => { touchStartRef.current = null; }}
     >
       {previous !== null && <MediaLayer key={`previous-${previous}`} item={items[previous] as MediaItem} className={`leaving leaving-${direction}`} muted />}
       <MediaLayer key={`current-${index}`} item={current} className={started ? `entering entering-${direction}` : "visible"} playing={started && playing} muted={muted} onEnded={() => move(1)} />
