@@ -79,6 +79,11 @@ export function Slideshow() {
       <MediaLayer key={`current-${index}`} item={current} className={started ? "entering" : "visible"} playing={started && playing} muted={muted} onEnded={() => move(1)} />
 
       {started && (
+        <>
+        <div className="slideshow-brand" aria-label="In loving memory of Guy Gauvreau">
+          <span>In loving memory</span>
+          <strong>Guy Gauvreau</strong>
+        </div>
         <button
           className={`filename-label ${filenameExpanded ? "expanded" : ""}`}
           type="button"
@@ -94,6 +99,7 @@ export function Slideshow() {
             <span className="sr-only" aria-live="polite">{filenameCopied ? "Filename copied" : ""}</span>
           </span>
         </button>
+        </>
       )}
 
       {!started && (

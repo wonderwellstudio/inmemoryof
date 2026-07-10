@@ -15,6 +15,9 @@ button { font: inherit; }
 .image-main { position: absolute; z-index: 2; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; object-position: center center; filter: drop-shadow(0 8px 30px rgba(0,0,0,.38)); }
 .video-backdrop { position: absolute; z-index: 1; inset: -5%; display: block; width: 110%; height: 110%; object-fit: cover; filter: blur(42px) brightness(.4) saturate(.85); transform: scale(1.04); }
 .video-main { position: absolute; z-index: 2; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; object-position: center center; filter: drop-shadow(0 8px 30px rgba(0,0,0,.38)); }
+.slideshow-brand { position: absolute; z-index: 18; top: 22px; left: 24px; display: flex; flex-direction: column; color: #f5f1e8; text-shadow: 0 2px 14px rgba(0,0,0,.9); pointer-events: none; }
+.slideshow-brand span { margin-bottom: 2px; color: #d7c9aa; font-size: 10px; font-weight: 650; line-height: 1.2; letter-spacing: .2em; text-transform: uppercase; }
+.slideshow-brand strong { font-family: var(--font-cormorant), serif; font-size: 27px; font-weight: 500; line-height: 1; letter-spacing: -.015em; }
 .filename-label { position: absolute; z-index: 18; left: 18px; bottom: 18px; display: grid; align-items: center; min-width: 54px; min-height: 54px; max-width: min(58vw, 720px); overflow: hidden; padding: 6px; border: 1px solid rgba(255,255,255,.18); border-radius: 999px; color: #eee9df; background: rgba(10,10,10,.72); box-shadow: 0 12px 40px rgba(0,0,0,.3); backdrop-filter: blur(16px); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 13px; line-height: 1.25; white-space: nowrap; cursor: pointer; transition: background .25s, border-color .25s, box-shadow .25s; }
 .filename-label:hover, .filename-label:focus-visible { background: rgba(10,10,10,.84); border-color: rgba(255,255,255,.25); box-shadow: 0 16px 48px rgba(0,0,0,.42); }
 .filename-label:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
@@ -60,15 +63,16 @@ h1 { margin: 0; font-family: var(--font-cormorant), serif; font-size: clamp(64px
   .filename-label.expanded .filename-details { max-width: calc(100vw - 100px); opacity: 1; visibility: visible; transform: none; }
 }
 @media (max-width: 640px) {
+  .slideshow-brand { top: calc(14px + env(safe-area-inset-top, 0px)); left: calc(14px + env(safe-area-inset-left, 0px)); }
+  .slideshow-brand span { font-size: 8px; }
+  .slideshow-brand strong { font-size: 21px; }
   .controls { right: calc(10px + env(safe-area-inset-right, 0px)); left: calc(10px + env(safe-area-inset-left, 0px)); bottom: calc(10px + env(safe-area-inset-bottom, 0px)); width: auto; transform: none; background: rgba(10,10,10,.84); border-color: rgba(255,255,255,.25); box-shadow: 0 16px 48px rgba(0,0,0,.42); }
   .control-actions, .controls.expanded .control-actions { flex: 1; justify-content: space-around; width: 100%; max-width: none; opacity: 1; visibility: visible; transform: none; transition: none; }
   .controls .controls-toggle { display: none; }
   .controls button { padding: 0 10px; }
-  .filename-label { top: calc(10px + env(safe-area-inset-top, 0px)); bottom: auto; left: calc(10px + env(safe-area-inset-left, 0px)); max-width: calc(100vw - 20px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)); font-size: 11px; }
+  .filename-label { top: calc(10px + env(safe-area-inset-top, 0px)); right: calc(10px + env(safe-area-inset-right, 0px)); bottom: auto; left: auto; min-width: 54px; max-width: none; font-size: 11px; }
   .filename-label { display: flex; }
   .filename-counter { grid-area: auto; flex: 0 0 auto; opacity: 1; transform: none; }
-  .filename-details { grid-area: auto; }
-  .filename-details { max-width: 0; opacity: 0; visibility: hidden; transform: translateX(-8px); }
-  .filename-label.expanded .filename-details { max-width: calc(100vw - 100px); opacity: 1; visibility: visible; transform: none; }
+  .filename-details { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .media-layer.entering, .media-layer.leaving { animation-duration: .15s; } .control-actions, .controls .controls-toggle { transition-duration: .01ms; } }
