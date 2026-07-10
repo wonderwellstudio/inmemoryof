@@ -5,26 +5,49 @@ import { Check, ChevronLeft, ChevronRight, Copy, Maximize, Pause, Play, Settings
 import items from "./media-manifest.json";
 
 type MediaItem = (typeof items)[number];
+type NavigationDirection = "forward" | "reverse";
+
+const SWIPE_THRESHOLD = 50;
 
 export function Slideshow() {
   const [started, setStarted] = useState(false);
   const [playing, setPlaying] = useState(true);
   const [index, setIndex] = useState(0);
   const [previous, setPrevious] = useState<number | null>(null);
+  const [direction, setDirection] = useState<NavigationDirection>("forward");
   const [controlsExpanded, setControlsExpanded] = useState(false);
   const [supportsHover, setSupportsHover] = useState(true);
   const [muted, setMuted] = useState(false);
   const [filenameCopied, setFilenameCopied] = useState(false);
   const [filenameExpanded, setFilenameExpanded] = useState(false);
   const rootRef = useRef<HTMLElement>(null);
+  const swipeStartRef = useRef<{ pointerId: number; x: number; y: number } | null>(null);
   const current = items[index] as MediaItem;
 
   const move = useCallback((direction: number) => {
+    setDirection(direction > 0 ? "forward" : "reverse");
     setPrevious(index);
     setIndex((index + direction + items.length) % items.length);
     setFilenameExpanded(false);
     setFilenameCopied(false);
   }, [index]);
+
+  const beginSwipe = (event: React.PointerEvent<HTMLElement>) => {
+    if (!started || !event.isPrimary || event.pointerType === "mouse") return;
+    swipeStartRef.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
+  };
+
+  const finishSwipe = (event: React.PointerEvent<HTMLElement>) => {
+    const start = swipeStartRef.current;
+    swipeStartRef.current = null;
+    if (!start || start.pointerId !== event.pointerId) return;
+
+    const deltaX = event.clientX - start.x;
+    const deltaY = event.clientY - start.y;
+    if (Math.abs(deltaX) < SWIPE_THRESHOLD || Math.abs(deltaX) <= Math.abs(deltaY)) return;
+
+    move(deltaX < 0 ? 1 : -1);
+  };
 
   useEffect(() => {
     const hoverQuery = window.matchMedia("(hover: hover) and (pointer: fine) and (min-width: 641px)");
@@ -76,9 +99,15 @@ export function Slideshow() {
   };
 
   return (
-    <main ref={rootRef} className="slideshow">
-      {previous !== null && <MediaLayer key={`previous-${previous}`} item={items[previous] as MediaItem} className="leaving" muted />}
-      <MediaLayer key={`current-${index}`} item={current} className={started ? "entering" : "visible"} playing={started && playing} muted={muted} onEnded={() => move(1)} />
+    <main
+      ref={rootRef}
+      className={`slideshow navigation-${direction}`}
+      onPointerDown={beginSwipe}
+      onPointerUp={finishSwipe}
+      onPointerCancel={() => { swipeStartRef.current = null; }}
+    >
+      {previous !== null && <MediaLayer key={`previous-${previous}`} item={items[previous] as MediaItem} className={`leaving leaving-${direction}`} muted />}
+      <MediaLayer key={`current-${index}`} item={current} className={started ? `entering entering-${direction}` : "visible"} playing={started && playing} muted={muted} onEnded={() => move(1)} />
 
       {started && (
         <>
