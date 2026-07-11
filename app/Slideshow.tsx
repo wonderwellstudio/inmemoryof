@@ -1,16 +1,31 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { Check, ChevronLeft, ChevronRight, Copy, Maximize, Pause, Play, Settings, Volume2, VolumeX } from "lucide-react";
 import items from "./media-manifest.json";
 
 type MediaItem = (typeof items)[number];
 type NavigationDirection = "forward" | "reverse";
+type TransitionStyle = CSSProperties & {
+  "--incoming-rotation": string;
+  "--outgoing-rotation": string;
+  "--landing-rotation": string;
+  "--departing-start-rotation": string;
+};
 
 const SWIPE_THRESHOLD = 50;
+const COVER_TRANSITION_DURATION = 900;
+
+const randomRotation = (minimum: number, maximum: number, direction: 1 | -1) => {
+  const magnitude = minimum + Math.random() * (maximum - minimum);
+  return `${direction * magnitude}deg`;
+};
+
+const randomLandingRotation = () => randomRotation(2, 4, Math.random() < 0.5 ? -1 : 1);
 
 export function Slideshow() {
   const [started, setStarted] = useState(false);
+  const [returningToCover, setReturningToCover] = useState(false);
   const [playing, setPlaying] = useState(true);
   const [index, setIndex] = useState(0);
   const [previous, setPrevious] = useState<number | null>(null);
@@ -20,12 +35,31 @@ export function Slideshow() {
   const [muted, setMuted] = useState(false);
   const [filenameCopied, setFilenameCopied] = useState(false);
   const [filenameExpanded, setFilenameExpanded] = useState(false);
+  const [transitionStyle, setTransitionStyle] = useState<TransitionStyle>({
+    "--incoming-rotation": "18deg",
+    "--outgoing-rotation": "16deg",
+    "--landing-rotation": "0deg",
+    "--departing-start-rotation": "0deg",
+  });
   const rootRef = useRef<HTMLElement>(null);
   const touchStartRef = useRef<{ x: number; y: number; interactive: boolean } | null>(null);
+  const nextRotationDirectionRef = useRef<1 | -1>(1);
+  const currentLandingRotationRef = useRef("0deg");
+  const coverTransitionTimerRef = useRef<number | null>(null);
   const current = items[index] as MediaItem;
 
   const move = useCallback((direction: number) => {
     setDirection(direction > 0 ? "forward" : "reverse");
+    const incomingDirection = nextRotationDirectionRef.current;
+    const landingRotation = randomLandingRotation();
+    nextRotationDirectionRef.current = incomingDirection === 1 ? -1 : 1;
+    setTransitionStyle({
+      "--incoming-rotation": randomRotation(12, 20, incomingDirection),
+      "--outgoing-rotation": randomRotation(10, 18, direction > 0 ? 1 : -1),
+      "--landing-rotation": landingRotation,
+      "--departing-start-rotation": currentLandingRotationRef.current,
+    });
+    currentLandingRotationRef.current = landingRotation;
     setPrevious(index);
     setIndex((index + direction + items.length) % items.length);
     setFilenameExpanded(false);
@@ -70,6 +104,10 @@ export function Slideshow() {
     return () => hoverQuery.removeEventListener("change", updateHoverSupport);
   }, []);
 
+  useEffect(() => () => {
+    if (coverTransitionTimerRef.current !== null) window.clearTimeout(coverTransitionTimerRef.current);
+  }, []);
+
   useEffect(() => {
     if (!started || !playing || current.type !== "image") return;
     const timer = window.setTimeout(() => move(1), current.duration);
@@ -89,10 +127,26 @@ export function Slideshow() {
   }, [move]);
 
   const start = () => {
+    setReturningToCover(false);
     setStarted(true);
     setPlaying(true);
     rootRef.current?.requestFullscreen?.().catch(() => undefined);
     navigator.wakeLock?.request("screen").catch(() => undefined);
+  };
+
+  const returnToCover = () => {
+    if (returningToCover) return;
+    setReturningToCover(true);
+    setPlaying(false);
+    setControlsExpanded(false);
+    setFilenameExpanded(false);
+    coverTransitionTimerRef.current = window.setTimeout(() => {
+      setStarted(false);
+      setReturningToCover(false);
+      setIndex(0);
+      setPrevious(null);
+      coverTransitionTimerRef.current = null;
+    }, COVER_TRANSITION_DURATION);
   };
 
   const copyFilename = async () => {
@@ -114,20 +168,20 @@ export function Slideshow() {
   return (
     <main
       ref={rootRef}
-      className={`slideshow navigation-${direction}`}
+      className={`slideshow navigation-${direction} ${returningToCover ? "returning-to-cover" : ""}`}
       onTouchStart={beginTouch}
       onTouchEnd={finishTouch}
       onTouchCancel={() => { touchStartRef.current = null; }}
     >
-      {previous !== null && <MediaLayer key={`previous-${previous}`} item={items[previous] as MediaItem} className={`leaving leaving-${direction}`} muted />}
-      <MediaLayer key={`current-${index}`} item={current} className={started ? `entering entering-${direction}` : "visible"} playing={started && playing} muted={muted} onEnded={() => move(1)} />
+      {previous !== null && <MediaLayer key={`previous-${previous}`} item={items[previous] as MediaItem} className={`leaving leaving-${direction}`} style={transitionStyle} muted />}
+      <MediaLayer key={`current-${index}`} item={current} className={started ? `entering entering-${direction}` : "visible"} style={transitionStyle} playing={started && playing} muted={muted} onEnded={() => move(1)} />
 
       {started && (
         <>
-        <div className="slideshow-brand" aria-label="In loving memory of Guy Gauvreau">
+        <button className="slideshow-brand" type="button" onClick={returnToCover} aria-label="Return to memorial cover">
           <span>In loving memory</span>
           <strong>Guy Gauvreau</strong>
-        </div>
+        </button>
         <button
           className={`filename-label ${filenameExpanded ? "expanded" : ""}`}
           type="button"
@@ -146,8 +200,8 @@ export function Slideshow() {
         </>
       )}
 
-      {!started && (
-        <section className="welcome" aria-label="Start memorial slideshow">
+      {(!started || returningToCover) && (
+        <section className={`welcome ${returningToCover ? "welcome-returning" : ""}`} aria-label="Start memorial slideshow">
           <div className="welcome-panel">
             <p className="eyebrow">In loving memory</p>
             <h1>Guy Gauvreau</h1>
@@ -195,7 +249,7 @@ export function Slideshow() {
   );
 }
 
-function MediaLayer({ item, className, playing = false, muted = true, onEnded }: { item: MediaItem; className: string; playing?: boolean; muted?: boolean; onEnded?: () => void; }) {
+function MediaLayer({ item, className, style, playing = false, muted = true, onEnded }: { item: MediaItem; className: string; style?: CSSProperties; playing?: boolean; muted?: boolean; onEnded?: () => void; }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const backdropVideoRef = useRef<HTMLVideoElement>(null);
   useEffect(() => {
@@ -215,7 +269,7 @@ function MediaLayer({ item, className, playing = false, muted = true, onEnded }:
   }, [playing]);
 
   return (
-    <div className={`media-layer ${className}`}>
+    <div className={`media-layer ${className}`} style={style}>
       {item.type === "image" ? (
         <><img className="image-backdrop" src={item.src} alt="" aria-hidden="true" /><img className="image-main" src={item.src} alt="Memorial photograph" /></>
       ) : (

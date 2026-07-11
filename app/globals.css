@@ -27,19 +27,26 @@ button { font: inherit; }
 .media-layer.visible { opacity: 1; }
 .media-layer.entering { z-index: 2; opacity: 1; }
 .media-layer.leaving { z-index: 1; opacity: 1; }
+.returning-to-cover .media-layer { animation: cover-media-out .9s cubic-bezier(.4,0,.2,1) both; }
+.returning-to-cover :is(.slideshow-brand, .filename-label, .controls) { animation: cover-controls-out .35s ease both; pointer-events: none; }
+.returning-to-cover .slideshow-brand span { opacity: 0; }
 .media-layer.entering :is(.image-backdrop, .video-backdrop) { animation: fade-in .7s ease-in-out both; }
-.media-layer.entering-forward :is(.image-main, .video-main) { animation: move-in-forward .35s .35s cubic-bezier(.22,.7,.28,1) both; }
-.media-layer.leaving-forward :is(.image-main, .video-main) { animation: move-out-forward .35s ease-in both; }
-.media-layer.entering-reverse :is(.image-main, .video-main) { animation: move-in-reverse .35s .35s cubic-bezier(.22,.7,.28,1) both; }
-.media-layer.leaving-reverse :is(.image-main, .video-main) { animation: move-out-reverse .35s ease-in both; }
+.media-layer.entering-forward :is(.image-main, .video-main) { transform-origin: center; animation: move-in-forward .55s .45s cubic-bezier(.16,1,.3,1) both; }
+.media-layer.leaving-forward :is(.image-main, .video-main) { transform-origin: center; animation: move-out-forward .45s cubic-bezier(.55,.06,.75,.38) both; }
+.media-layer.entering-reverse :is(.image-main, .video-main) { transform-origin: center; animation: move-in-reverse .65s .5s cubic-bezier(.16,1,.3,1) both; }
+.media-layer.leaving-reverse :is(.image-main, .video-main) { transform-origin: center; animation: move-out-reverse .5s cubic-bezier(.45,.05,.65,.45) both; }
 .image-backdrop { position: absolute; inset: -5%; width: 110%; height: 110%; object-fit: cover; filter: blur(42px) brightness(.38) saturate(.85); transform: scale(1.04); }
 .image-main { position: absolute; z-index: 2; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; object-position: center center; filter: drop-shadow(0 8px 30px rgba(0,0,0,.38)); }
 .video-backdrop { position: absolute; z-index: 1; inset: -5%; display: block; width: 110%; height: 110%; object-fit: cover; filter: blur(42px) brightness(.4) saturate(.85); transform: scale(1.04); }
 .video-main { position: absolute; z-index: 2; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; object-position: center center; filter: drop-shadow(0 8px 30px rgba(0,0,0,.38)); }
-.slideshow-brand { position: absolute; z-index: 18; top: 22px; left: 24px; display: flex; flex-direction: column; color: #f5f1e8; text-shadow: 0 2px 14px rgba(0,0,0,.9); pointer-events: none; }
+@media (min-width: 641px) {
+  .image-main { top: 7.5%; bottom: auto; height: 85%; }
+}
+.slideshow-brand { position: absolute; z-index: 18; top: 22px; left: 24px; display: flex; flex-direction: column; padding: 0; border: 0; color: #f5f1e8; background: transparent; text-align: left; text-shadow: 0 2px 18px rgba(0,0,0,.45); cursor: pointer; }
+.slideshow-brand:focus-visible { outline: 2px solid currentColor; outline-offset: 6px; border-radius: 2px; }
 .slideshow-brand span { margin-bottom: 2px; color: #d7c9aa; font-size: 10px; font-weight: 650; line-height: 1.2; letter-spacing: .2em; text-transform: uppercase; }
 .slideshow-brand strong { font-family: "Mr Porter", serif; font-size: 54px; font-weight: 400; line-height: 1; letter-spacing: -.015em; }
-.filename-label { position: absolute; z-index: 18; left: 18px; bottom: 18px; display: grid; align-items: center; min-width: 54px; min-height: 54px; max-width: min(58vw, 720px); overflow: hidden; padding: 6px; border: 1px solid rgba(255,255,255,.18); border-radius: 999px; color: #eee9df; background: rgba(10,10,10,.72); box-shadow: 0 12px 40px rgba(0,0,0,.3); backdrop-filter: blur(16px); font-family: "Atlas Grotesk", sans-serif; font-size: 13px; line-height: 1.25; white-space: nowrap; cursor: pointer; transition: background .25s, border-color .25s, box-shadow .25s; }
+.filename-label { position: absolute; z-index: 18; left: 18px; bottom: 18px; display: grid; align-items: center; min-width: 54px; min-height: 54px; max-width: min(58vw, 720px); overflow: hidden; padding: 6px; border: 0; border-radius: 999px; color: #eee9df; background: rgba(10,10,10,.72); box-shadow: 0 12px 40px rgba(0,0,0,.3); backdrop-filter: blur(16px); font-family: "Atlas Grotesk", sans-serif; font-size: 13px; line-height: 1.25; white-space: nowrap; cursor: pointer; transition: background .25s, border-color .25s, box-shadow .25s; }
 .filename-label:hover, .filename-label:focus-visible { background: rgba(10,10,10,.84); border-color: rgba(255,255,255,.25); box-shadow: 0 16px 48px rgba(0,0,0,.42); }
 .filename-label:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 .filename-counter { grid-area: 1 / 1; display: grid; place-items: center; min-width: 42px; width: max-content; height: 42px; padding: 0 8px; overflow: hidden; border-radius: 999px; color: #c7c0b4; font-family: "Atlas Grotesk", sans-serif; font-size: 12px; font-variant-numeric: tabular-nums; transition: opacity .18s ease, transform .38s cubic-bezier(.22,1,.36,1); }
@@ -51,6 +58,9 @@ button { font: inherit; }
 .copy-status { margin-right: 10px; }
 .copy-status svg { width: 14px; height: 14px; stroke-width: 2; }
 .welcome { position: absolute; z-index: 10; inset: 0; display: grid; place-items: center; padding: 32px; background: radial-gradient(circle at 50% 42%, rgba(35,32,28,.56), rgba(2,2,2,.88)); backdrop-filter: blur(20px); }
+.welcome-returning { animation: cover-overlay-in .9s cubic-bezier(.22,1,.36,1) both; }
+.welcome-returning .welcome-panel > :not(.eyebrow) { animation: cover-title-in .9s cubic-bezier(.22,1,.36,1) both; }
+.welcome-returning .eyebrow { animation: cover-eyebrow-home .9s cubic-bezier(.22,1,.36,1) both; }
 .welcome-panel { text-align: center; max-width: 720px; color: #f5f1e8; }
 .eyebrow { position: absolute; top: calc(28px + env(safe-area-inset-top, 0px)); right: 24px; left: 24px; margin: 0; font-size: clamp(11.05px, 1.02vw, 14.45px); text-transform: uppercase; letter-spacing: .28em; color: #cdbf9f; }
 h1 { margin: 0; font-family: "Mr Porter", serif; font-size: clamp(64px, 10vw, 132px); font-weight: 400; line-height: .9; letter-spacing: -.035em; }
@@ -60,8 +70,8 @@ h1 { margin: 0; font-family: "Mr Porter", serif; font-size: clamp(64px, 10vw, 13
 .start-button:active { transform: scale(.98); background: #fff8e8; }
 .start-button:focus-visible, .controls button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 .start-note { position: absolute; right: 24px; bottom: calc(28px + env(safe-area-inset-bottom, 0px)); left: 24px; margin: 0; color: #aaa292; font-size: 13px; }
-.controls { position: absolute; z-index: 20; right: 18px; bottom: 18px; display: flex; align-items: center; gap: 0; padding: 6px; border: 1px solid rgba(255,255,255,.18); border-radius: 999px; background: rgba(10,10,10,.72); box-shadow: 0 12px 40px rgba(0,0,0,.3); backdrop-filter: blur(16px); transition: background .25s, border-color .25s, box-shadow .25s; }
-.controls.expanded { background: rgba(10,10,10,.84); border-color: rgba(255,255,255,.25); box-shadow: 0 16px 48px rgba(0,0,0,.42); }
+.controls { position: absolute; z-index: 20; right: 18px; bottom: 18px; display: flex; align-items: center; gap: 0; padding: 6px; border: 0; border-radius: 999px; background: rgba(10,10,10,.72); box-shadow: 0 12px 40px rgba(0,0,0,.3); backdrop-filter: blur(16px); transition: gap .38s cubic-bezier(.22,1,.36,1), background .25s, border-color .25s, box-shadow .25s; }
+.controls.expanded { gap: 7px; background: rgba(10,10,10,.84); border-color: rgba(255,255,255,.25); box-shadow: 0 16px 48px rgba(0,0,0,.42); }
 .control-actions { display: flex; align-items: center; gap: 7px; max-width: 0; opacity: 0; overflow: hidden; visibility: hidden; transform: translateX(12px) scale(.96); transform-origin: right center; transition: max-width .38s cubic-bezier(.22,1,.36,1), opacity .2s ease, transform .38s cubic-bezier(.22,1,.36,1), visibility 0s .38s; }
 .controls.expanded .control-actions { max-width: 520px; opacity: 1; visibility: visible; transform: translateX(0) scale(1); transition-delay: 0s; }
 .controls button { min-width: 42px; height: 42px; border: 0; border-radius: 999px; padding: 0 14px; color: #eee9df; background: transparent; cursor: pointer; }
@@ -72,10 +82,27 @@ h1 { margin: 0; font-family: "Mr Porter", serif; font-size: clamp(64px, 10vw, 13
 .controls .controls-toggle { display: grid; flex: 0 0 42px; place-items: center; width: 42px; min-width: 42px; padding: 0; border: 1px solid transparent; background: transparent; transition: color .25s, background .25s, transform .38s cubic-bezier(.22,1,.36,1); }
 .controls.expanded .controls-toggle { color: #171511; background: #eee5d1; transform: rotate(45deg); }
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-@keyframes move-in-forward { from { opacity: 0; transform: translateX(7vw); } to { opacity: 1; transform: translateX(0); } }
-@keyframes move-out-forward { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(-7vw); } }
-@keyframes move-in-reverse { from { opacity: 0; transform: translateX(-7vw); } to { opacity: 1; transform: translateX(0); } }
-@keyframes move-out-reverse { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(7vw); } }
+@keyframes cover-media-out { from { opacity: 1; transform: scale(1); } to { opacity: .28; transform: scale(.96); } }
+@keyframes cover-controls-out { to { opacity: 0; transform: translateY(-8px); } }
+@keyframes cover-overlay-in { from { opacity: 0; backdrop-filter: blur(0); } to { opacity: 1; backdrop-filter: blur(20px); } }
+@keyframes cover-title-in { from { opacity: 0; transform: translateY(22px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes cover-eyebrow-home { from { transform: translateX(calc(-50vw + 65px)); } to { transform: translateX(0); } }
+@keyframes move-in-forward {
+  from { opacity: 0; transform: translate(18vw, 18vh) rotate(var(--incoming-rotation, 18deg)) scale(1.1); }
+  to { opacity: 1; transform: translate(0, 0) rotate(var(--landing-rotation, 0deg)) scale(1); }
+}
+@keyframes move-out-forward {
+  from { opacity: 1; transform: translate(0, 0) rotate(var(--departing-start-rotation, 0deg)) scale(1); }
+  to { opacity: 0; transform: translate(-20vw, -20vh) rotate(var(--outgoing-rotation, 16deg)) scale(.92); }
+}
+@keyframes move-in-reverse {
+  from { opacity: 0; transform: translate(-12vw, -30vh) rotate(var(--incoming-rotation, -18deg)) scale(1.1); }
+  to { opacity: 1; transform: translate(0, 0) rotate(var(--landing-rotation, 0deg)) scale(1); }
+}
+@keyframes move-out-reverse {
+  from { opacity: 1; transform: translate(0, 0) rotate(var(--departing-start-rotation, 0deg)) scale(1); }
+  to { opacity: 0; transform: translate(14vw, 30vh) rotate(var(--outgoing-rotation, -16deg)) scale(.92); }
+}
 @media (hover: none), (pointer: coarse) {
   .controls { right: 50%; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); transform: translateX(50%); background: rgba(10,10,10,.84); border-color: rgba(255,255,255,.25); box-shadow: 0 16px 48px rgba(0,0,0,.42); }
   .control-actions { max-width: calc(100vw - 32px); opacity: 1; visibility: visible; transform: none; transition: none; }
@@ -90,12 +117,13 @@ h1 { margin: 0; font-family: "Mr Porter", serif; font-size: clamp(64px, 10vw, 13
 @media (max-width: 640px) {
   .eyebrow { top: calc(18px + env(safe-area-inset-top, 0px)); right: 16px; left: 16px; }
   .start-note { right: 16px; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); left: 16px; }
-  .slideshow-brand { top: calc(14px + env(safe-area-inset-top, 0px)); left: calc(14px + env(safe-area-inset-left, 0px)); }
-  .slideshow-brand span { font-size: 8px; }
-  .slideshow-brand strong { font-size: 27.3px; }
-  .controls { right: calc(10px + env(safe-area-inset-right, 0px)); left: calc(10px + env(safe-area-inset-left, 0px)); bottom: calc(10px + env(safe-area-inset-bottom, 0px)); width: auto; transform: none; background: rgba(10,10,10,.84); border-color: rgba(255,255,255,.25); box-shadow: 0 16px 48px rgba(0,0,0,.42); }
-  .control-actions, .controls.expanded .control-actions { flex: 1; justify-content: space-around; width: 100%; max-width: none; opacity: 1; visibility: visible; transform: none; transition: none; }
+  .slideshow-brand { top: calc(14px + env(safe-area-inset-top, 0px)); left: calc(6px + env(safe-area-inset-left, 0px)); padding-right: 10px; padding-left: 10px; }
+  .slideshow-brand span { font-size: 10px; }
+  .slideshow-brand strong { font-size: 34.125px; }
+  .controls { right: auto; left: 50%; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); width: max-content; transform: translateX(-50%); background: rgba(10,10,10,.84); border-color: rgba(255,255,255,.25); box-shadow: 0 16px 48px rgba(0,0,0,.42); }
+  .control-actions, .controls.expanded .control-actions { flex: none; gap: 4px; justify-content: center; width: auto; max-width: none; opacity: 1; visibility: visible; transform: none; transition: none; }
   .controls .controls-toggle { display: none; }
+  .controls .fullscreen-control { display: none; }
   .controls button { padding: 0 10px; }
   .filename-label { top: calc(10px + env(safe-area-inset-top, 0px)); right: calc(10px + env(safe-area-inset-right, 0px)); bottom: auto; left: auto; min-width: 54px; max-width: calc(100vw - 20px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)); font-size: 11px; }
   .filename-label { display: flex; flex-direction: row-reverse; }
@@ -105,5 +133,6 @@ h1 { margin: 0; font-family: "Mr Porter", serif; font-size: clamp(64px, 10vw, 13
   .filename-label.expanded .filename-details { max-width: calc(100vw - 100px); opacity: 1; visibility: visible; transform: none; }
   .filename-text { margin-right: 10px; margin-left: 0; }
   .copy-status { margin-right: 0; margin-left: 10px; }
+  @keyframes cover-eyebrow-home { from { transform: translateX(calc(-50vw + 55px)); } to { transform: translateX(0); } }
 }
-@media (prefers-reduced-motion: reduce) { .media-layer.entering :is(.image-backdrop, .video-backdrop) { animation-duration: .15s; } .media-layer :is(.image-main, .video-main) { animation: none; } .control-actions, .controls .controls-toggle { transition-duration: .01ms; } }
+@media (prefers-reduced-motion: reduce) { .media-layer.entering :is(.image-backdrop, .video-backdrop) { animation-duration: .15s; } .media-layer :is(.image-main, .video-main) { animation: none; } .control-actions, .controls .controls-toggle { transition-duration: .01ms; } .returning-to-cover .media-layer, .welcome-returning, .welcome-returning .welcome-panel > *, .welcome-returning .eyebrow { animation-duration: .15s; } }

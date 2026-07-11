@@ -10,9 +10,23 @@ const imageExtensions = new Set([".jpg", ".jpeg", ".png", ".heic"]);
 const videoExtensions = new Set([".mov", ".mp4", ".m4v"]);
 const excludedNames = new Set(["Photo 2026-06-27, 12 14 23 PM.jpg"]);
 const counterclockwiseRotation = new Set([
+  "Photo 2026-06-27, 11 54 22 AM.jpg",
+  "Photo 2026-06-27, 12 47 31 PM.jpg",
+  "Photo 2026-06-27, 12 53 45 PM.jpg",
+  "Photo 2026-06-27, 1 29 38 PM.jpg",
+  "Photo 2026-06-27, 12 37 24 PM.jpg",
+  "Photo 2026-06-27, 12 40 03 PM.jpg",
+  "Photo 2026-06-27, 1 19 29 PM.jpg",
+  "Photo 2026-06-27, 3 42 18 PM.jpg",
   "Photo 2026-06-27, 4 04 34 PM.jpg",
   "Photo 2026-06-27, 3 06 26 PM.jpg",
   "Photo 2026-07-02, 3 37 24 PM.jpg",
+]);
+const clockwiseRotation = new Set([
+  "Photo 2026-06-27, 11 50 42 AM.jpg",
+  "IMG_8401.HEIC",
+  "IMG_8402.HEIC",
+  "Photo 2026-07-02, 3 27 39 PM.jpg",
 ]);
 const files = readdirSync(source)
   .map((name) => ({ name, path: join(source, name) }))
@@ -39,9 +53,14 @@ const photoItems = images.map((file, index) => {
   if (extension === ".heic") {
     const resizedDestination = `${destination}.resized.jpg`;
     execFileSync("heif-convert", ["-q", "90", file.path, destination], { stdio: "ignore" });
+    const filters = [
+      ...(counterclockwiseRotation.has(file.name) ? ["transpose=2"] : []),
+      ...(clockwiseRotation.has(file.name) ? ["transpose=1"] : []),
+      "scale='min(1920,iw)':'min(1920,ih)':force_original_aspect_ratio=decrease",
+    ].join(",");
     execFileSync("ffmpeg", [
       "-hide_banner", "-loglevel", "error", "-y", "-i", destination,
-      "-vf", "scale='min(1920,iw)':'min(1920,ih)':force_original_aspect_ratio=decrease",
+      "-vf", filters,
       "-frames:v", "1", "-q:v", "5", resizedDestination,
     ], { stdio: "inherit" });
     renameSync(resizedDestination, destination);
@@ -50,6 +69,7 @@ const photoItems = images.map((file, index) => {
     // This prevents portrait photos from being sized as landscape images by CSS.
     const filters = [
       ...(counterclockwiseRotation.has(file.name) ? ["transpose=2"] : []),
+      ...(clockwiseRotation.has(file.name) ? ["transpose=1"] : []),
       "scale='min(1920,iw)':'min(1920,ih)':force_original_aspect_ratio=decrease",
     ].join(",");
     execFileSync("ffmpeg", [
@@ -58,7 +78,7 @@ const photoItems = images.map((file, index) => {
       "-frames:v", "1", "-q:v", "5", destination,
     ], { stdio: "inherit" });
   }
-  return { type: "image", src: `/media/${filename}?v=5`, duration: 5000, originalName: file.name };
+  return { type: "image", src: `/media/${filename}?v=9`, duration: 5000, originalName: file.name };
 });
 
 const videoItems = videos.map((file, index) => {
@@ -72,7 +92,7 @@ const videoItems = videos.map((file, index) => {
     "-map", "0:v:0", "-map", "0:a?", "-c:v", "libx264", "-preset", "medium", "-crf", "24",
     "-c:a", "aac", "-b:a", "128k", "-pix_fmt", "yuv420p", "-movflags", "+faststart", destination,
   ], { stdio: "inherit" });
-  return { type: "video", src: `/media/${filename}?v=5`, originalName: file.name };
+  return { type: "video", src: `/media/${filename}?v=9`, originalName: file.name };
 });
 
 const items = [...photoItems];
