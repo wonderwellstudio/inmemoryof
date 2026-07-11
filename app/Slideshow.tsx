@@ -88,11 +88,11 @@ export function Slideshow() {
     return () => window.removeEventListener("keydown", keydown);
   }, [move]);
 
-  const start = async () => {
+  const start = () => {
     setStarted(true);
     setPlaying(true);
-    try { await rootRef.current?.requestFullscreen?.(); } catch {}
-    try { await navigator.wakeLock?.request("screen"); } catch {}
+    rootRef.current?.requestFullscreen?.().catch(() => undefined);
+    navigator.wakeLock?.request("screen").catch(() => undefined);
   };
 
   const copyFilename = async () => {
@@ -152,7 +152,7 @@ export function Slideshow() {
             <p className="eyebrow">In loving memory</p>
             <h1>Guy Gauvreau</h1>
             <p className="welcome-copy">Photos and memories shared by family and friends</p>
-            <button className="start-button" onClick={start}>Start slideshow</button>
+            <button className="start-button" type="button" onClick={start}>Start slideshow</button>
             <p className="start-note">Starts full screen with video audio enabled</p>
           </div>
         </section>
